@@ -1,0 +1,795 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+<META NAME="generator" CONTENT="http://txt2tags.sf.net">
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
+<TITLE>﻿Protocol Buffer Basics: C++</TITLE>
+<STYLE TYPE="text/css">
+/* t2t --css-sugar support css
+version:
+	v0.9 090430;fixed IE bad toc link color
+	v0.8 070613;zoomq clean base gary,and support anchor ed Title
+	v0.7 2004;zoomq creat base deviantart.com
+*/
+body {
+	background-color : #fdfdfd;
+	font-family: Tahoma,SimSun,arial, helvetica, sans-serif; 
+	font-size: 92%;
+	/* line-height: 120%; */
+	margin: 0px;
+	padding: 0px;
+	color:#494D4A;
+}
+SUP,SUB{
+	font-size:11px;
+}
+a {
+	color: #3B4A4A;
+	text-decoration:underline; 
+}
+a:hover {color: #930;
+	text-decoration: none; 
+}
+a:visited {color: #45544A;
+	}
+img {border: none;}
+/*"
+"font-family: courier, monospace;
+*/
+
+pre{
+	border-left: 2px solid #AEBDCC;
+	
+	/*background-color: #323232;
+	color:#9AEF3F;*/
+	color:#5A695F;
+	
+	padding: 1em;
+	font-family: "Courier New",Georgia,helvetica, sans-serif;  
+	white-space: pre;
+	/*" begin css 3 or browser specific rules - do not remove!
+	see: http://forums.techguy.org/archive/index.php/t-249849.html */
+	white-space: pre-wrap;
+	word-wrap: break-word;
+	white-space: -moz-pre-wrap;
+	white-space: -pre-wrap;
+	white-space: -o-pre-wrap;
+	/* end css 3 or browser specific rules */
+}
+UL,OL{
+	margin: 0em 0 0 .5em;
+	padding: 0 .25em 0em 1em;
+}
+/*定义声明组*/
+DL,DT{
+	margin: .25em 0 0 .25em;
+	padding: 0em 0em 0em .25em;
+}
+DT{
+	font-weight:bold;
+	font-size:105%;
+}
+DD{
+	margin: .25em 0 0 .5em;
+	padding: 0 .25em .25em 1em;
+}
+ul.plain {
+	list-style-type: none;
+	margin-left: 5px;
+	padding-left: 5px;
+}
+H1,H2,H3,H4,H5,H6{
+	font-family: Verdana, arial, helvetica, sans-serif; 
+	text-align: left;
+	color:#5A695F;
+	margin-left : .5em;  
+	padding : 4px;
+	line-height: 1.2em;
+}
+H1 { 
+	background-color :transparent;
+	border-left : 5px solid #404E4E ;
+	border-bottom : 1px dashed  #A9B3A9 ;
+	font-size: 1.5em;
+}
+h2 { 
+	border-left : 10px solid #526157 ;
+	border-bottom : 1px dashed  #A9B3A9 ;
+	font-size: 1.4em;
+}
+h3 {
+	border-left : 15px solid #738278 ;
+	border-bottom : 1px dashed  #A9B3A9 ;
+	font-size: 1.3em;
+}
+
+h4 {
+	border-left : 20px solid #88938D ;
+	border-bottom : 1px dashed  #A9B3A9 ;
+	font-size: 1.2em;
+}
+h5{
+	border-left : 25px solid #B2B8B2 ;
+	border-bottom : 1px dashed  #A9B3A9 ;
+	font-size: 1.1em;
+}
+h6{
+	border-left : 30px solid #C4C8C4 ;
+	border-bottom : 1px dashed  #A9B3A9 ;
+	font-size: 1em;
+}
+
+H1 A{text-decoration:none;}
+H1 A:hover{text-decoration:overline;}
+
+H2 A{text-decoration:none;}
+H2 A:hover{text-decoration:overline;}
+
+H3 A{text-decoration:none;}
+H3 A:hover{text-decoration:overline;}
+
+H4 A{text-decoration:none;}
+H4 A:hover{text-decoration:overline;}
+
+H5 A{text-decoration:none;}
+H5 A:hover{text-decoration:overline;}
+
+/*padding:5px 15px 10px 15px;  */
+#banner {
+	font-family: "Courier New",Georgia,Verdana, arial, helvetica, sans-serif;
+	color:#CED8CE;
+	background:#25342A;
+	padding-left: 10px;
+	letter-spacing: .2em;
+	font-size:24px;
+	font-weight:bold ;
+	border-top:4px solid #738278;
+	border-bottom: 0px solid  #4A584A;
+}
+#banner A{
+	color:#E0FFB8;
+	text-decoration:none;
+}
+#banner A:hover{
+	color:#DAF4DA;
+	text-decoration:overline ;
+}
+#banner SUP,SUB{
+	font-size:12px;
+	color:#DAE4DA;
+}
+#banner P#main{
+	margin: 4px;
+	padding: 4px;
+}
+#banner P#sub{
+	font-size:12px;letter-spacing: 5px;
+	margin: 4px;
+	padding: 4px 4px 10px 4px;
+}
+#banner DIV#recent {
+	border : 0px dotted #930;
+	color:#DAE4DA;
+	font-family: Georgia,arial, helvetica,sans-serif;
+	position : absolute ;
+	top: 2em;
+	left: 39%;
+	font-size:16px;
+	letter-spacing: 2px;
+}
+/*text-transform:uppercase;*/
+#content { 
+	width: 69%;
+	position: absolute;	
+	background-color: transparence;
+	border-right: 0px dotted #4A584A;
+	margin: 0px;
+	padding: 10px 5px 10px 10px;
+}
+/*<h2>Mon, 23 Jan 2006</h2>*/
+h2.blosxomDate{
+	font-family: Georgia,Verdana, arial, helvetica, sans-serif;
+	text-align: right;
+	border:0px solid #2B3A3A;
+	margin: 0px 5px 5px 0px;
+	padding: 0px 15px 0px 0px;
+	border-bottom: 1px solid #2B3A3A;
+}
+H3#blosxomTitle {
+	font-size: 90%;
+	border-left:4px solid #88938D;
+	border-bottom : 0px dashed  #A9B3A9 ;
+	background-color: #546359;
+	color:#A7AFA7;
+	padding: 4px;
+	margin: 5px 0px 0px 0px;
+	font-weight:normal;
+}
+
+H3#blosxomTitle a { 
+	color: #DDDDD0;
+}
+
+.blosxomStory{
+	padding: 4px; 
+	font-size: 92%;   
+	border-left:2px solid #88938D;
+	background-color: #ECEEEC;
+}
+
+.blosxomStory a { 
+	color:#835959;
+}
+
+/*
+"font-family: "Courier New",Georgia,helvetica, sans-serif; 
+*/
+.blosxomStoryLinks{
+	font-size:90%;
+	padding: 2px;
+	margin: 0px;
+	border:0px dotted #2B3A3A;
+	background-color: #546359;
+	color:#A7AFA7;
+}
+.blosxomStoryLinks a {
+	color: #DDDDD0;
+	text-decoration:none; 
+}
+.blosxomStoryLinks a:hover {
+	color: #DDDDD0;
+	text-decoration: underline; 
+}
+.blosxomStoryLinks a:visited {
+	color: #BAC4BB;
+}
+/*"margin: 1px 0px 2px 0px  */
+div.body {
+	margin: 0px 10px 0px 10px;
+}
+div#header {
+	font-family: Verdana, Arial, Helvetica, Sans-Serif;
+	border-bottom: 0px dotted black;
+	margin: 0px;
+	padding: 0px;
+	background-color :#454545;
+}
+/*文章大标*/
+div#header H1{
+	float: left;
+	margin: 5px 5px 10px 15px;
+	padding: 5px;
+	font-size: 200%;
+	font-weight : normal;
+	color:#DAE4DA;
+	border:0px;
+}
+/*文章副标*/
+div#header H2 {
+	text-align: right;
+	margin: 0em;
+	padding: .5em .5em 0em 0em;
+	font-size: 130%;
+	font-weight : normal;
+	border:0px;
+	color:#DAE4DA;
+	border-right : 4px solid #A7AFA7;
+}
+/*文章说明*/
+div#header H3{
+	text-align: right;
+	margin: 0em;
+	padding: 0em .5em 0em 0em;
+	font-size: 13px;
+	font-weight : normal;
+	border:0px;
+	color:#D2D8D2;
+	border-bottom : 2px solid #A7AFA7;
+	border-right :  4px solid #A7AFA7;
+}
+
+div.toc {
+	float: right;
+	background-color :#454545;
+	color:#BAC4BA;
+	border-bottom : 4px solid #A7AFA7;
+	border-left :   2px solid #A7AFA7;
+	border-right :   4px solid #A7AFA7;
+	padding: .5em 0em .5em .5em;
+	margin: -2px 0px 0px 0px;
+}
+div.toc ul {
+	padding-left: .75em;
+}
+div.toc li {
+	font-size: 12px;
+}
+div.toc a {
+	text-decoration: none;
+	color:#9DAFA3;
+}
+div.toc a:hover {
+	color: #FFFFCC;
+	text-decoration: underline;
+}
+div.toc a:visited {
+	color: #D3DED3;
+}
+
+code{
+	font-family: "Courier New",Georgia,helvetica, sans-serif;
+	padding: .1em;
+	color:#835959;
+	font-size: 110%;
+	font-weight:bold ;
+}
+
+</STYLE>
+</HEAD>
+<BODY>
+
+<DIV CLASS="header" ID="header">
+<H1>﻿Protocol Buffer Basics: C++</H1>
+<H2>ChaiShushan &lt;chaishushan@gmail.com&gt;[整理]</H2>
+<H3>2012-05-25</H3>
+</DIV>
+
+<DIV CLASS="toc" ID="toc">
+  <OL>
+  <LI><A HREF="#toc1">Why Use Protocol Buffers?</A>
+  <LI><A HREF="#toc2">Where to Find the Example Code</A>
+  <LI><A HREF="#toc3">Defining Your Protocol Format</A>
+  <LI><A HREF="#toc4">Compiling Your Protocol Buffers</A>
+  <LI><A HREF="#toc5">The Protocol Buffer API</A>
+    <UL>
+    <LI><A HREF="#toc6">5.1. Enums and Nested Classes</A>
+    <LI><A HREF="#toc7">5.2. Standard Message Methods</A>
+    <LI><A HREF="#toc8">5.3. Parsing and Serialization</A>
+    </UL>
+  <LI><A HREF="#toc9">Writing A Message</A>
+  <LI><A HREF="#toc10">Reading A Message</A>
+  <LI><A HREF="#toc11">Extending a Protocol Buffer</A>
+  <LI><A HREF="#toc12">Optimization Tips</A>
+  <LI><A HREF="#toc13">Advanced Usage</A>
+  </OL>
+
+</DIV>
+<DIV CLASS="body" ID="body">
+<P>
+This tutorial provides a basic C++ programmer's introduction to working with protocol buffers. By walking through creating a simple example application, it shows you how to
+</P>
+<P>
+Define message formats in a .proto file.
+Use the protocol buffer compiler.
+Use the C++ protocol buffer API to write and read messages.
+This isn't a comprehensive guide to using protocol buffers in C++. For more detailed reference information, see the Protocol Buffer Language Guide, the C++ API Reference, the C++ Generated Code Guide, and the Encoding Reference.
+</P>
+<A NAME="toc1"></A>
+<H1>1. Why Use Protocol Buffers?</H1>
+<P>
+The example we're going to use is a very simple "address book" application that can read and write people's contact details to and from a file. Each person in the address book has a name, an ID, an email address, and a contact phone number.
+</P>
+<P>
+How do you serialize and retrieve structured data like this? There are a few ways to solve this problem:
+</P>
+<UL>
+<LI>The raw in-memory data structures can be sent/saved in binary form. Over time, this is a fragile approach, as the receiving/reading code must be compiled with exactly the same memory layout, endianness, etc. Also, as files accumulate data in the raw format and copies of software that are wired for that format are spread around, it's very hard to extend the format.
+<LI>You can invent an ad-hoc way to encode the data items into a single string – such as encoding 4 ints as "12:3:-23:67". This is a simple and flexible approach, although it does require writing one-off encoding and parsing code, and the parsing imposes a small run-time cost. This works best for encoding very simple data.
+<LI>Serialize the data to XML. This approach can be very attractive since XML is (sort of) human readable and there are binding libraries for lots of languages. This can be a good choice if you want to share data with other applications/projects. However, XML is notoriously space intensive, and encoding/decoding it can impose a huge performance penalty on applications. Also, navigating an XML DOM tree is considerably more complicated than navigating simple fields in a class normally would be.
+</UL>
+
+<P>
+Protocol buffers are the flexible, efficient, automated solution to solve exactly this problem. With protocol buffers, you write a .proto description of the data structure you wish to store. From that, the protocol buffer compiler creates a class that implements automatic encoding and parsing of the protocol buffer data with an efficient binary format. The generated class provides getters and setters for the fields that make up a protocol buffer and takes care of the details of reading and writing the protocol buffer as a unit. Importantly, the protocol buffer format supports the idea of extending the format over time in such a way that the code can still read data encoded with the old format.
+</P>
+<A NAME="toc2"></A>
+<H1>2. Where to Find the Example Code</H1>
+<P>
+The example code is included in the source code package, under the "examples" directory. Download it here.
+</P>
+<A NAME="toc3"></A>
+<H1>3. Defining Your Protocol Format</H1>
+<P>
+To create your address book application, you'll need to start with a .proto file. The definitions in a .proto file are simple: you add a message for each data structure you want to serialize, then specify a name and a type for each field in the message. Here is the .proto file that defines your messages, addressbook.proto.
+</P>
+<PRE>
+package tutorial;
+
+message Person {
+  required string name = 1;
+  required int32 id = 2;
+  optional string email = 3;
+
+  enum PhoneType {
+    MOBILE = 0;
+    HOME = 1;
+    WORK = 2;
+  }
+
+  message PhoneNumber {
+    required string number = 1;
+    optional PhoneType type = 2 [default = HOME];
+  }
+
+  repeated PhoneNumber phone = 4;
+}
+
+message AddressBook {
+  repeated Person person = 1;
+}
+</PRE>
+<P></P>
+<P>
+As you can see, the syntax is similar to C++ or Java. Let's go through each part of the file and see what it does.
+</P>
+<P>
+The .proto file starts with a package declaration, which helps to prevent naming conflicts between different projects. In C++, your generated classes will be placed in a namespace matching the package name.
+</P>
+<P>
+Next, you have your message definitions. A message is just an aggregate containing a set of typed fields. Many standard simple data types are available as field types, including bool, int32, float, double, and string. You can also add further structure to your messages by using other message types as field types – in the above example the Person message contains PhoneNumber messages, while the AddressBook message contains Person messages. You can even define message types nested inside other messages – as you can see, the PhoneNumber type is defined inside Person. You can also define enum types if you want one of your fields to have one of a predefined list of values – here you want to specify that a phone number can be one of MOBILE, HOME, or WORK.
+</P>
+<P>
+The " = 1", " = 2" markers on each element identify the unique "tag" that field uses in the binary encoding. Tag numbers 1-15 require one less byte to encode than higher numbers, so as an optimization you can decide to use those tags for the commonly used or repeated elements, leaving tags 16 and higher for less-commonly used optional elements. Each element in a repeated field requires re-encoding the tag number, so repeated fields are particularly good candidates for this optimization.
+</P>
+<P>
+Each field must be annotated with one of the following modifiers:
+</P>
+<UL>
+<LI>required: a value for the field must be provided, otherwise the message will be considered "uninitialized". If libprotobuf is compiled in debug mode, serializing an uninitialized message will cause an assertion failure. In optimized builds, the check is skipped and the message will be written anyway. However, parsing an uninitialized message will always fail (by returning false from the parse method). Other than this, a required field behaves exactly like an optional field.
+<LI>optional: the field may or may not be set. If an optional field value isn't set, a default value is used. For simple types, you can specify your own default value, as we've done for the phone number type in the example. Otherwise, a system default is used: zero for numeric types, the empty string for strings, false for bools. For embedded messages, the default value is always the "default instance" or "prototype" of the message, which has none of its fields set. Calling the accessor to get the value of an optional (or required) field which has not been explicitly set always returns that field's default value.
+<LI>repeated: the field may be repeated any number of times (including zero). The order of the repeated values will be preserved in the protocol buffer. Think of repeated fields as dynamically sized arrays.
+</UL>
+
+<P>
+Required Is Forever You should be very careful about marking fields as required. If at some point you wish to stop writing or sending a required field, it will be problematic to change the field to an optional field – old readers will consider messages without this field to be incomplete and may reject or drop them unintentionally. You should consider writing application-specific custom validation routines for your buffers instead. Some engineers at Google have come to the conclusion that using required does more harm than good; they prefer to use only optional and repeated. However, this view is not universal.
+</P>
+<P>
+You'll find a complete guide to writing .proto files – including all the possible field types – in the Protocol Buffer Language Guide. Don't go looking for facilities similar to class inheritance, though – protocol buffers don't do that.
+</P>
+<A NAME="toc4"></A>
+<H1>4. Compiling Your Protocol Buffers</H1>
+<P>
+Now that you have a .proto, the next thing you need to do is generate the classes you'll need to read and write AddressBook (and hence Person and PhoneNumber) messages. To do this, you need to run the protocol buffer compiler protoc on your .proto:
+</P>
+<OL>
+<LI>If you haven't installed the compiler, download the package and follow the instructions in the README.
+<LI>Now run the compiler, specifying the source directory (where your application's source code lives – the current directory is used if you don't provide a value), the destination directory (where you want the generated code to go; often the same as $SRC_DIR), and the path to your .proto. In this case, you...:
+<PRE>
+protoc -I=$SRC_DIR --cpp_out=$DST_DIR $SRC_DIR/addressbook.proto
+</PRE>
+Because you want C++ classes, you use the --cpp_out option – similar options are provided for other supported languages.
+</OL>
+
+<P>
+This generates the following files in your specified destination directory:
+</P>
+<UL>
+<LI>addressbook.pb.h, the header which declares your generated classes.
+<LI>addressbook.pb.cc, which contains the implementation of your classes.
+</UL>
+
+<A NAME="toc5"></A>
+<H1>5. The Protocol Buffer API</H1>
+<P>
+Let's look at some of the generated code and see what classes and functions the compiler has created for you. If you look in tutorial.pb.h, you can see that you have a class for each message you specified in tutorial.proto. Looking closer at the Person class, you can see that the complier has generated accessors for each field. For example, for the name, id, email, and phone fields, you have these methods:
+</P>
+<PRE>
+  // name
+  inline bool has_name() const;
+  inline void clear_name();
+  inline const ::std::string&amp; name() const;
+  inline void set_name(const ::std::string&amp; value);
+  inline void set_name(const char* value);
+  inline ::std::string* mutable_name();
+
+  // id
+  inline bool has_id() const;
+  inline void clear_id();
+  inline int32_t id() const;
+  inline void set_id(int32_t value);
+
+  // email
+  inline bool has_email() const;
+  inline void clear_email();
+  inline const ::std::string&amp; email() const;
+  inline void set_email(const ::std::string&amp; value);
+  inline void set_email(const char* value);
+  inline ::std::string* mutable_email();
+
+  // phone
+  inline int phone_size() const;
+  inline void clear_phone();
+  inline const ::google::protobuf::RepeatedPtrField&lt; ::tutorial::Person_PhoneNumber &gt;&amp; phone() const;
+  inline ::google::protobuf::RepeatedPtrField&lt; ::tutorial::Person_PhoneNumber &gt;* mutable_phone();
+  inline const ::tutorial::Person_PhoneNumber&amp; phone(int index) const;
+  inline ::tutorial::Person_PhoneNumber* mutable_phone(int index);
+  inline ::tutorial::Person_PhoneNumber* add_phone();
+</PRE>
+<P></P>
+<P>
+As you can see, the getters have exactly the name as the field in lowercase, and the setter methods begin with set_. There are also has_ methods for each singular (required or optional) field which return true if that field has been set. Finally, each field has a clear_ method that un-sets the field back to its empty state.
+</P>
+<P>
+While the numeric id field just has the basic accessor set described above, the name and email fields have a couple of extra methods because they're strings – a mutable_ getter that lets you get a direct pointer to the string, and an extra setter. Note that you can call mutable_email() even if email is not already set; it will be initialized to an empty string automatically. If you had a singular message field in this example, it would also have a mutable_ method but not a set_ method.
+</P>
+<P>
+Repeated fields also have some special methods – if you look at the methods for the repeated phone field, you'll see that you can
+</P>
+<UL>
+<LI>check the repeated field's _size (in other words, how many phone numbers are associated with this Person).
+<LI>get a specified phone number using its index.
+<LI>update an existing phone number at the specified index.
+<LI>add another phone number to the message which you can then edit (repeated scalar types have an add_ that just lets you pass in the new value).
+</UL>
+
+<P>
+For more information on exactly what members the protocol compiler generates for any particular field definition, see the C++ generated code reference.
+</P>
+<A NAME="toc6"></A>
+<H2>5.1. Enums and Nested Classes</H2>
+<P>
+The generated code includes a PhoneType enum that corresponds to your .proto enum. You can refer to this type as Person::PhoneType and its values as Person::MOBILE, Person::HOME, and Person::WORK (the implementation details are a little more complicated, but you don't need to understand them to use the enum).
+</P>
+<P>
+The compiler has also generated a nested class for you called Person::PhoneNumber. If you look at the code, you can see that the "real" class is actually called Person_PhoneNumber, but a typedef defined inside Person allows you to treat it as if it were a nested class. The only case where this makes a difference is if you want to forward-declare the class in another file – you cannot forward-declare nested types in C++, but you can forward-declare Person_PhoneNumber.
+</P>
+<A NAME="toc7"></A>
+<H2>5.2. Standard Message Methods</H2>
+<P>
+Each message class also contains a number of other methods that let you check or manipulate the entire message, including:
+</P>
+<UL>
+<LI>bool IsInitialized() const;: checks if all the required fields have been set.
+<LI>string DebugString() const;: returns a human-readable representation of the message, particularly useful for debugging.
+<LI>void CopyFrom(const Person&amp; from);: overwrites the message with the given message's values.
+<LI>void Clear();: clears all the elements back to the empty state.
+</UL>
+
+<P>
+These and the I/O methods described in the following section implement the Message interface shared by all C++ protocol buffer classes. For more info, see the complete API documentation for Message.
+</P>
+<A NAME="toc8"></A>
+<H2>5.3. Parsing and Serialization</H2>
+<P>
+Finally, each protocol buffer class has methods for writing and reading messages of your chosen type using the protocol buffer binary format. These include:
+</P>
+<UL>
+<LI>bool SerializeToString(string* output) const;: serializes the message and stores the bytes in the given string. Note that the bytes are binary, not text; we only use the string class as a convenient container.
+<LI>bool ParseFromString(const string&amp; data);: parses a message from the given string.
+<LI>bool SerializeToOstream(ostream* output) const;: writes the message to the given C++ ostream.
+<LI>bool ParseFromIstream(istream* input);: parses a message from the given C++ istream.
+</UL>
+
+<P>
+These are just a couple of the options provided for parsing and serialization. Again, see the Message API reference for a complete list.
+</P>
+<P>
+Protocol Buffers and O-O Design Protocol buffer classes are basically dumb data holders (like structs in C++); they don't make good first class citizens in an object model. If you want to add richer behaviour to a generated class, the best way to do this is to wrap the generated protocol buffer class in an application-specific class. Wrapping protocol buffers is also a good idea if you don't have control over the design of the .proto file (if, say, you're reusing one from another project). In that case, you can use the wrapper class to craft an interface better suited to the unique environment of your application: hiding some data and methods, exposing convenience functions, etc. You should never add behaviour to the generated classes by inheriting from them. This will break internal mechanisms and is not good object-oriented practice anyway.
+</P>
+<A NAME="toc9"></A>
+<H1>6. Writing A Message</H1>
+<P>
+Now let's try using your protocol buffer classes. The first thing you want your address book application to be able to do is write personal details to your address book file. To do this, you need to create and populate instances of your protocol buffer classes and then write them to an output stream.
+</P>
+<P>
+Here is a program which reads an AddressBook from a file, adds one new Person to it based on user input, and writes the new AddressBook back out to the file again. The parts which directly call or reference code generated by the protocol compiler are highlighted.
+</P>
+<PRE>
+#include &lt;iostream&gt;
+#include &lt;fstream&gt;
+#include &lt;string&gt;
+#include "addressbook.pb.h"
+using namespace std;
+
+// This function fills in a Person message based on user input.
+void PromptForAddress(tutorial::Person* person) {
+  cout &lt;&lt; "Enter person ID number: ";
+  int id;
+  cin &gt;&gt; id;
+  person-&gt;set_id(id);
+  cin.ignore(256, '\n');
+
+  cout &lt;&lt; "Enter name: ";
+  getline(cin, *person-&gt;mutable_name());
+
+  cout &lt;&lt; "Enter email address (blank for none): ";
+  string email;
+  getline(cin, email);
+  if (!email.empty()) {
+    person-&gt;set_email(email);
+  }
+
+  while (true) {
+    cout &lt;&lt; "Enter a phone number (or leave blank to finish): ";
+    string number;
+    getline(cin, number);
+    if (number.empty()) {
+      break;
+    }
+
+    tutorial::Person::PhoneNumber* phone_number = person-&gt;add_phone();
+    phone_number-&gt;set_number(number);
+
+    cout &lt;&lt; "Is this a mobile, home, or work phone? ";
+    string type;
+    getline(cin, type);
+    if (type == "mobile") {
+      phone_number-&gt;set_type(tutorial::Person::MOBILE);
+    } else if (type == "home") {
+      phone_number-&gt;set_type(tutorial::Person::HOME);
+    } else if (type == "work") {
+      phone_number-&gt;set_type(tutorial::Person::WORK);
+    } else {
+      cout &lt;&lt; "Unknown phone type.  Using default." &lt;&lt; endl;
+    }
+  }
+}
+
+// Main function:  Reads the entire address book from a file,
+//   adds one person based on user input, then writes it back out to the same
+//   file.
+int main(int argc, char* argv[]) {
+  // Verify that the version of the library that we linked against is
+  // compatible with the version of the headers we compiled against.
+  GOOGLE_PROTOBUF_VERIFY_VERSION;
+
+  if (argc != 2) {
+    cerr &lt;&lt; "Usage:  " &lt;&lt; argv[0] &lt;&lt; " ADDRESS_BOOK_FILE" &lt;&lt; endl;
+    return -1;
+  }
+
+  tutorial::AddressBook address_book;
+
+  {
+    // Read the existing address book.
+    fstream input(argv[1], ios::in | ios::binary);
+    if (!input) {
+      cout &lt;&lt; argv[1] &lt;&lt; ": File not found.  Creating a new file." &lt;&lt; endl;
+    } else if (!address_book.ParseFromIstream(&amp;input)) {
+      cerr &lt;&lt; "Failed to parse address book." &lt;&lt; endl;
+      return -1;
+    }
+  }
+
+  // Add an address.
+  PromptForAddress(address_book.add_person());
+
+  {
+    // Write the new address book back to disk.
+    fstream output(argv[1], ios::out | ios::trunc | ios::binary);
+    if (!address_book.SerializeToOstream(&amp;output)) {
+      cerr &lt;&lt; "Failed to write address book." &lt;&lt; endl;
+      return -1;
+    }
+  }
+
+  // Optional:  Delete all global objects allocated by libprotobuf.
+  google::protobuf::ShutdownProtobufLibrary();
+
+  return 0;
+}
+</PRE>
+<P></P>
+<P>
+Notice the GOOGLE_PROTOBUF_VERIFY_VERSION macro. It is good practice – though not strictly necessary – to execute this macro before using the C++ Protocol Buffer library. It verifies that you have not accidentally linked against a version of the library which is incompatible with the version of the headers you compiled with. If a version mismatch is detected, the program will abort. Note that every .pb.cc file automatically invokes this macro on startup.
+</P>
+<P>
+Also notice the call to ShutdownProtobufLibrary() at the end of the program. All this does is delete any global objects that were allocated by the Protocol Buffer library. This is unnecessary for most programs, since the process is just going to exit anyway and the OS will take care of reclaiming all of its memory. However, if you use a memory leak checker that requires that every last object be freed, or if you are writing a library which may be loaded and unloaded multiple times by a single process, then you may want to force Protocol Buffers to clean up everything.
+</P>
+<A NAME="toc10"></A>
+<H1>7. Reading A Message</H1>
+<P>
+Of course, an address book wouldn't be much use if you couldn't get any information out of it! This example reads the file created by the above example and prints all the information in it.
+</P>
+<PRE>
+#include &lt;iostream&gt;
+#include &lt;fstream&gt;
+#include &lt;string&gt;
+#include "addressbook.pb.h"
+using namespace std;
+
+// Iterates though all people in the AddressBook and prints info about them.
+void ListPeople(const tutorial::AddressBook&amp; address_book) {
+  for (int i = 0; i &lt; address_book.person_size(); i++) {
+    const tutorial::Person&amp; person = address_book.person(i);
+
+    cout &lt;&lt; "Person ID: " &lt;&lt; person.id() &lt;&lt; endl;
+    cout &lt;&lt; "  Name: " &lt;&lt; person.name() &lt;&lt; endl;
+    if (person.has_email()) {
+      cout &lt;&lt; "  E-mail address: " &lt;&lt; person.email() &lt;&lt; endl;
+    }
+
+    for (int j = 0; j &lt; person.phone_size(); j++) {
+      const tutorial::Person::PhoneNumber&amp; phone_number = person.phone(j);
+
+      switch (phone_number.type()) {
+        case tutorial::Person::MOBILE:
+          cout &lt;&lt; "  Mobile phone #: ";
+          break;
+        case tutorial::Person::HOME:
+          cout &lt;&lt; "  Home phone #: ";
+          break;
+        case tutorial::Person::WORK:
+          cout &lt;&lt; "  Work phone #: ";
+          break;
+      }
+      cout &lt;&lt; phone_number.number() &lt;&lt; endl;
+    }
+  }
+}
+
+// Main function:  Reads the entire address book from a file and prints all
+//   the information inside.
+int main(int argc, char* argv[]) {
+  // Verify that the version of the library that we linked against is
+  // compatible with the version of the headers we compiled against.
+  GOOGLE_PROTOBUF_VERIFY_VERSION;
+
+  if (argc != 2) {
+    cerr &lt;&lt; "Usage:  " &lt;&lt; argv[0] &lt;&lt; " ADDRESS_BOOK_FILE" &lt;&lt; endl;
+    return -1;
+  }
+
+  tutorial::AddressBook address_book;
+
+  {
+    // Read the existing address book.
+    fstream input(argv[1], ios::in | ios::binary);
+    if (!address_book.ParseFromIstream(&amp;input)) {
+      cerr &lt;&lt; "Failed to parse address book." &lt;&lt; endl;
+      return -1;
+    }
+  }
+
+  ListPeople(address_book);
+
+  // Optional:  Delete all global objects allocated by libprotobuf.
+  google::protobuf::ShutdownProtobufLibrary();
+
+  return 0;
+}
+</PRE>
+<P></P>
+<A NAME="toc11"></A>
+<H1>8. Extending a Protocol Buffer</H1>
+<P>
+Sooner or later after you release the code that uses your protocol buffer, you will undoubtedly want to "improve" the protocol buffer's definition. If you want your new buffers to be backwards-compatible, and your old buffers to be forward-compatible – and you almost certainly do want this – then there are some rules you need to follow. In the new version of the protocol buffer:
+</P>
+<UL>
+<LI>you must not change the tag numbers of any existing fields.
+<LI>you must not add or delete any required fields.
+<LI>you may delete optional or repeated fields.
+<LI>you may add new optional or repeated fields but you must use fresh tag numbers (i.e. tag numbers that were never used in this protocol buffer, not even by deleted fields).
+</UL>
+
+<P>
+(There are some exceptions to these rules, but they are rarely used.)
+</P>
+<P>
+If you follow these rules, old code will happily read new messages and simply ignore any new fields. To the old code, optional fields that were deleted will simply have their default value, and deleted repeated fields will be empty. New code will also transparently read old messages. However, keep in mind that new optional fields will not be present in old messages, so you will need to either check explicitly whether they're set with has_, or provide a reasonable default value in your .proto file with <A HREF="value">default =</A> after the tag number. If the default value is not specified for an optional element, a type-specific default value is used instead: for strings, the default value is the empty string. For booleans, the default value is false. For numeric types, the default value is zero. Note also that if you added a new repeated field, your new code will not be able to tell whether it was left empty (by new code) or never set at all (by old code) since there is no has_ flag for it.
+</P>
+<A NAME="toc12"></A>
+<H1>9. Optimization Tips</H1>
+<P>
+The C++ Protocol Buffers library is extremely heavily optimized. However, proper usage can improve performance even more. Here are some tips for squeezing every last drop of speed out of the library:
+</P>
+<UL>
+<LI>Reuse message objects when possible. Messages try to keep around any memory they allocate for reuse, even when they are cleared. Thus, if you are handling many messages with the same type and similar structure in succession, it is a good idea to reuse the same message object each time to take load off the memory allocator. However, objects can become bloated over time, especially if your messages vary in "shape" or if you occasionally construct a message that is much larger than usual. You should monitor the sizes of your message objects by calling the SpaceUsed method and delete them once they get too big.
+<LI>Your system's memory allocator may not be well-optimized for allocating lots of small objects from multiple threads. Try using Google's tcmalloc instead.
+</UL>
+
+<A NAME="toc13"></A>
+<H1>10. Advanced Usage</H1>
+<P>
+Protocol buffers have uses that go beyond simple accessors and serialization. Be sure to explore the C++ API reference to see what else you can do with them.
+</P>
+<P>
+One key feature provided by protocol message classes is reflection. You can iterate over the fields of a message and manipulate their values without writing your code against any specific message type. One very useful way to use reflection is for converting protocol messages to and from other encodings, such as XML or JSON. A more advanced use of reflection might be to find differences between two messages of the same type, or to develop a sort of "regular expressions for protocol messages" in which you can write expressions that match certain message contents. If you use your imagination, it's possible to apply Protocol Buffers to a much wider range of problems than you might initially expect!
+</P>
+<P>
+Reflection is provided by the Message::Reflection interface.
+</P>
+</DIV>
+
+<!-- html code generated by txt2tags 2.3 (http://txt2tags.sf.net) -->
+<!-- cmdline: txt2tags cpp-generated.t2t cpptutorial.t2t encoding.t2t overview.t2t proto.t2t style.t2t techniques.t2t -->
+</BODY></HTML>
