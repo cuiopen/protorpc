@@ -28,10 +28,7 @@ func (p *servicePlugin) GenerateImports(file *FileDescriptor) {
 		return
 	}
 	if len(file.Service) > 0 {
-		p.P(`import "io"`)
-		p.P(`import "net"`)
-		p.P(`import "net/rpc"`)
-		p.P(`import "net/rpc/protorpc"`)
+		p.P(`import "goto_rpc"`)
 	}
 }
 
@@ -41,8 +38,11 @@ func (p *servicePlugin) Generate(file *FileDescriptor) {
 		return
 	}
 	for _, svc := range file.Service {
-		p.genServiceInterface(svc)
-		p.genServiceServer(svc)
+		var _ = svc
+		p.genAsynServiceInterface(svc)
+		p.genSyncServiceInterface(svc)
+		p.genServiceServerAsyn(svc)
+		p.genServiceServerSync(svc)
 		p.genServiceClient(svc)
 	}
 }
@@ -60,82 +60,113 @@ func (p *servicePlugin) getGenericServicesOptions(file *FileDescriptor) bool {
 	return false
 }
 
-func (p *servicePlugin) genServiceInterface(svc *descriptor.ServiceDescriptorProto) {
+func (p *servicePlugin) genAsynServiceInterface(svc *descriptor.ServiceDescriptorProto) {
 	name := CamelCase(*svc.Name)
 
 	// type {Service} interface
-	p.P("type ", name, " interface {")
+	p.P("type I", name, "Asyn interface {")
 	p.In()
 	for _, m := range svc.Method {
 		method := CamelCase(*m.Name)
 		iType := p.ObjectNamed(*m.InputType)
-		oType := p.ObjectNamed(*m.OutputType)
-		p.P(method, "(in *", p.TypeName(iType), ", out *", p.TypeName(oType), ") error")
+		//oType := p.ObjectNamed(*m.OutputType)
+		p.P(method, "(ctx goto_rpc.IContext, request *", p.TypeName(iType), ")")
 	}
 	p.Out()
 	p.P("}")
 }
 
-func (p *servicePlugin) genServiceServer(svc *descriptor.ServiceDescriptorProto) {
+func (p *servicePlugin) genSyncServiceInterface(svc *descriptor.ServiceDescriptorProto) {
 	name := CamelCase(*svc.Name)
 
-	// func Register{Service}(srv *rpc.Server, x {Service}) error
-	p.P("// Register", name, " publish the given ", name, " implementation on the server.")
-	p.P("func Register", name, "(srv *rpc.Server, x ", name, ") error {")
+	// type {Service} interface
+	p.P("type I", name, "Sync interface {")
 	p.In()
-	p.P(`if err := srv.RegisterName("`, name, `", x); err != nil {`)
-	p.In()
-	p.P("return err")
+	for _, m := range svc.Method {
+		method := CamelCase(*m.Name)
+		iType := p.ObjectNamed(*m.InputType)
+		oType := p.ObjectNamed(*m.OutputType)
+		p.P(method, "(ctx goto_rpc.IContext, request *", p.TypeName(iType),
+			") (response *", p.TypeName(oType), ", status byte)")
+	}
 	p.Out()
 	p.P("}")
-	p.P("return nil")
-	p.Out()
-	p.P("}")
+}
 
-	// func Serve{Service}(conn io.ReadWriteCloser, x EchoService) error
-	p.P("// Serve", name, " serves the given ", name, " implementation on conn.")
-	p.P("func Serve", name, "(conn io.ReadWriteCloser, x ", name, ") error {")
-	p.In()
-	p.P("srv := rpc.NewServer()")
-	p.P(`if err := srv.RegisterName("`, name, `", x); err != nil {`)
-	p.In()
-	p.P("return err")
-	p.Out()
-	p.P("}")
-	p.P("srv.ServeCodec(protorpc.NewServerCodec(conn))")
-	p.P("return nil")
-	p.Out()
-	p.P("}")
+func (p *servicePlugin) genServiceServerAsyn(svc *descriptor.ServiceDescriptorProto) {
+	name := CamelCase(*svc.Name)
 
-	// func ListenAndServe{Service}(network, addr string, x EchoService) error
-	p.P("// ListenAndServe", name, " listen announces on the local network address laddr")
-	p.P("// and serves the given ", name, " implementation.")
-	p.P("func ListenAndServe", name, "(network, addr string, x ", name, ") error {")
+	p.P("func Register", name, "Asyn(srv *goto_rpc.Server, service I", name, "Asyn) (e error) {")
 	p.In()
-	p.P(`clients, err := net.Listen(network, addr)`)
-	p.P("if err != nil {")
-	p.In()
-	p.P("return err")
+
+	for _, m := range svc.Method {
+		method := CamelCase(*m.Name)
+		iType := p.ObjectNamed(*m.InputType)
+		oType := p.ObjectNamed(*m.OutputType)
+
+		p.P(`e = srv.AddServiceFunc("`, name, ".", method, `", func(ctx goto_rpc.IContext, request proto.Message) {`)
+
+		p.In()
+		p.P("service.", method, "(ctx, request.(*", p.TypeName(iType), "))")
+		p.Out()
+
+		p.P("}, func() proto.Message {")
+
+		p.In()
+		p.P("return &", p.TypeName(iType), "{}")
+		p.Out()
+
+		p.P("}, func() proto.Message {")
+
+		p.In()
+		p.P("return &", p.TypeName(oType), "{}")
+		p.Out()
+
+		p.P("})")
+		p.P("if e != nil { return e }")
+		p.P("")
+	}
+	p.P("return nil")
+
 	p.Out()
 	p.P("}")
-	p.P("srv := rpc.NewServer()")
-	p.P(`if err := srv.RegisterName("`, name, `", x); err != nil {`)
+}
+
+func (p *servicePlugin) genServiceServerSync(svc *descriptor.ServiceDescriptorProto) {
+	name := CamelCase(*svc.Name)
+
+	p.P("func Register", name, "Sync(srv *goto_rpc.Server, service I", name, "Sync) (e error) {")
 	p.In()
-	p.P("return err")
-	p.Out()
-	p.P("}")
-	p.P("for {")
-	p.In()
-	p.P("conn, err := clients.Accept()")
-	p.P("if err != nil {")
-	p.In()
-	p.P("return err")
-	p.Out()
-	p.P("}")
-	p.P("go srv.ServeCodec(protorpc.NewServerCodec(conn))")
-	p.Out()
-	p.P("}")
-	p.P(`panic("unreachable")`)
+
+	for _, m := range svc.Method {
+		method := CamelCase(*m.Name)
+		iType := p.ObjectNamed(*m.InputType)
+		oType := p.ObjectNamed(*m.OutputType)
+		p.P("e = srv.AddServiceFunc(\"", name, ".", method, "\", func(ctx goto_rpc.IContext, request proto.Message) {")
+
+		p.In()
+		p.P("rsp, s := service.", method, "(ctx, request.(*", p.TypeName(iType), "))")
+		p.P("ctx.Reply(s, rsp)")
+		p.Out()
+
+		p.P("}, func() proto.Message {")
+
+		p.In()
+		p.P("return &", p.TypeName(iType), "{}")
+		p.Out()
+
+		p.P("}, func() proto.Message {")
+
+		p.In()
+		p.P("return &", p.TypeName(oType), "{}")
+		p.Out()
+
+		p.P("})")
+		p.P("if e != nil { return e }")
+		p.P("")
+	}
+
+	p.P("return nil")
 	p.Out()
 	p.P("}")
 }
@@ -143,59 +174,74 @@ func (p *servicePlugin) genServiceServer(svc *descriptor.ServiceDescriptorProto)
 func (p *servicePlugin) genServiceClient(svc *descriptor.ServiceDescriptorProto) {
 	name := CamelCase(*svc.Name)
 
-	// type rpc{Service}Stub struct {
-	p.P("type rpc", name, "Stub struct {")
+	// stub struct
+	stub_name := name + "_Stub"
+	p.P("type ", stub_name, " struct {")
 	p.In()
-	p.P("*rpc.Client")
+	p.P("*goto_rpc.Client")
 	p.Out()
 	p.P("}")
 
-	// rpc{Service}Stub method
+	// New stub
+	p.P("func New", stub_name, "(c *goto_rpc.Client) (stub *", stub_name, ", e error) {")
+	p.In()
 	for _, m := range svc.Method {
 		method := CamelCase(*m.Name)
 		iType := p.ObjectNamed(*m.InputType)
 		oType := p.ObjectNamed(*m.OutputType)
-		p.P("func (c *rpc", name, "Stub) ", method, "(in *", p.TypeName(iType), ", out *", p.TypeName(oType), ") error {")
+		p.P("e = c.AddServiceInfo(\"", name, ".", method, "\", func() proto.Message {")
 		p.In()
-		p.P(`return c.Call("`, name, ".", method, `", in, out)`)
+		p.P("return &", p.TypeName(iType), "{}")
+		p.Out()
+		p.P("}, func() proto.Message {")
+		p.In()
+		p.P("return &", p.TypeName(oType), "{}")
+		p.Out()
+		p.P("})")
+		p.P("if e != nil { return }")
+		p.P("")
+	}
+	p.P("stub = &ArithService_Stub{c}")
+	p.P("return")
+	p.Out()
+	p.P("}")
+
+	// sync methods.
+	for _, m := range svc.Method {
+		method := CamelCase(*m.Name)
+		iType := p.ObjectNamed(*m.InputType)
+		oType := p.ObjectNamed(*m.OutputType)
+
+		p.P("func (stub *", stub_name, ") ", method, "(request *", p.TypeName(iType), ") (*", p.TypeName(oType), ", error) {")
+		p.In()
+		p.P("rsp, e := stub.Call(\"", name, ".", method, "\", request)")
+		p.P("response, _ := rsp.(*", p.TypeName(oType), ")")
+		p.P("return response, e")
 		p.Out()
 		p.P("}")
 	}
 
-	// func Dial{Service}(addr string) (*rpc.Client, {Service}, error) {
-	p.P("// Dial", name, " connects to an ", name, " at the specified network address.")
-	p.P("func Dial", name, "(network, addr string) (*rpc.Client, ", name, ", error) {")
-	p.In()
-	p.P(`conn, err := net.Dial(network, addr)`)
-	p.P("if err != nil {")
-	p.In()
-	p.P("return nil, nil, err")
-	p.Out()
-	p.P("}")
-	p.P("c, srv := New", name, "Client(conn)")
-	p.P("return c, srv, nil")
-	p.Out()
-	p.P("}")
+	// asyn methods.
+	for _, m := range svc.Method {
+		method := CamelCase(*m.Name)
+		iType := p.ObjectNamed(*m.InputType)
+		oType := p.ObjectNamed(*m.OutputType)
 
-	// func New{Service}Client(conn io.ReadWriteCloser) (*rpc.Client, {Service})
-	p.P("// New", name, "Client returns a ", name, " rpc.Client and stub to handle")
-	p.P("// requests to the set of ", name, " at the other end of the connection.")
-	p.P("func New", name, "Client(conn io.ReadWriteCloser) (*rpc.Client, ", name, ") {")
-	p.In()
-	p.P("c := rpc.NewClientWithCodec(protorpc.NewClientCodec(conn))")
-	p.P("return c, &rpc", name, "Stub{c}")
-	p.Out()
-	p.P("}")
+		p.P("func (stub *", stub_name, ") Asyn", method, "(request *", p.TypeName(iType), ", cb func(error, *", p.TypeName(oType), ")) {")
+		p.In()
+		p.P("stub.AsynCall(\"", name, ".", method, "\", request, func(err error, rsp proto.Message) {")
+		p.In()
+		p.P("response, _ := rsp.(*", p.TypeName(oType), ")")
+		p.P("cb(err, response)")
+		p.Out()
+		p.P("})")
+		p.Out()
+		p.P("}")
+	}
 
-	// func New{Service}Stub(c *rpc.Client) {Service}
-	p.P("// New", name, "Stub returns a ", name, " stub to handle rpc.Client.")
-	p.P("func New", name, "Stub(c *rpc.Client) ", name, " {")
-	p.Out()
-	p.P("return &rpc", name, "Stub{c}")
-	p.In()
-	p.P("}")
 }
 
 func init() {
 	RegisterPlugin(new(servicePlugin))
 }
+
