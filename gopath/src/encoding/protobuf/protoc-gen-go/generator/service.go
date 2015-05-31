@@ -239,6 +239,24 @@ func (p *servicePlugin) genServiceClient(svc *descriptor.ServiceDescriptorProto)
 		p.P("}")
 	}
 
+	// go asyn methods.
+	for _, m := range svc.Method {
+		method := CamelCase(*m.Name)
+		iType := p.ObjectNamed(*m.InputType)
+		oType := p.ObjectNamed(*m.OutputType)
+
+		p.P("func (stub *", stub_name, ") GoAsyn", method, "(request *", p.TypeName(iType), ", cb func(error, *", p.TypeName(oType), ")) error {")
+		p.In()
+		p.P("return stub.GoAsynCall(\"", name, ".", method, "\", request, func(err error, rsp proto.Message) {")
+		p.In()
+		p.P("response, _ := rsp.(*", p.TypeName(oType), ")")
+		p.P("cb(err, response)")
+		p.Out()
+		p.P("})")
+		p.Out()
+		p.P("}")
+	}
+
 }
 
 func init() {
